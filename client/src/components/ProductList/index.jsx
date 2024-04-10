@@ -13,22 +13,23 @@ const getTotalPrice = products => {
 const ProductList = () => {
   const [addedProducts, setAddedProducts] = useState([]);
   const products = getProducts();
-  const { tg } = useTelegram();
+  const { tg, queryId } = useTelegram();
 
   const onDataSendHandler = useCallback(() => {
     const data = {
       products: addedProducts,
       totalPrice: getTotalPrice(addedProducts),
+      queryId,
     };
 
-    fetch('http://localhost:8000', {
+    fetch(process.env.API_POST_LINK, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
     });
-  }, []);
+  }, [addedProducts, queryId]);
 
   useEffect(() => {
     tg.onEvent('mainButtonClicked', onDataSendHandler);

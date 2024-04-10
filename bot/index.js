@@ -1,10 +1,17 @@
 require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
+const express = require('express');
+const cors = require('cors');
 
 const token = process.env.TG_TOKEN;
 const webAppUrl = process.env.WEB_APP_URL;
+const PORT = process.env.PORT || 5000;
 
 const bot = new TelegramBot(token, { polling: true });
+const app = express();
+
+app.use(express.json());
+app.use(cors());
 
 bot.on('message', async msg => {
   const chatId = msg.chat.id;
@@ -54,3 +61,32 @@ bot.on('message', async msg => {
     }
   }
 });
+
+app.post('/web-data', async (req, res) => {
+  const { queryId, products, totalPrice } = req.body;
+  try {
+    await bot.answerWebAppQuery(queryId, {
+      type: 'article',
+      id: queryId,
+      title: 'successful purchase',
+      input_message_content: {
+        message_text: `thank you for buying, total worth:  + ${totalPrice}, 
+        ${products.map(product => product.title).join(', ')}
+        `,
+      },
+    });
+    return res.status(200).json({});
+  } catch (error) {
+    console.log(error);
+
+    await bot.answerWebAppQuery(queryId, {
+      type: 'article',
+      id: queryId,
+      title: 'purchase failed',
+      input_message_content: { message_text: 'purchase failed' },
+    });
+    return res.status(500).json({});
+  }
+});
+
+app.listen(PORT, () => console.log('server started on PORT: ' + PORT));
