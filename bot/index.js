@@ -11,17 +11,46 @@ bot.on('message', async msg => {
   const text = msg.text;
 
   if (text === '/start') {
-    await bot.sendMessage(chatId, 'tap to see web app', {
+    await bot.sendMessage(chatId, 'shipping form', {
       reply_markup: {
         inline_keyboard: [
           [
             {
-              text: 'order',
+              text: 'fill form',
+              web_app: { url: webAppUrl + '/form' },
+            },
+          ],
+        ],
+      },
+    });
+
+    await bot.sendMessage(chatId, 'products list', {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: 'make order',
               web_app: { url: webAppUrl },
             },
           ],
         ],
       },
     });
+
+    if (msg.web_app_data?.data) {
+      try {
+        const data = json.parse(msg.web_app_data?.data);
+
+        await bot.sendMessage(chatId, 'thanks for your order');
+        await bot.sendMessage(chatId, 'your country' + data?.country);
+        await bot.sendMessage(chatId, 'your street' + data?.street);
+
+        setTimeout(async () => {
+          await bot.sendMessage(chatId, 'your order received');
+        }, 500);
+      } catch (error) {
+        console.log(error);
+      }
+    }
   }
 });
